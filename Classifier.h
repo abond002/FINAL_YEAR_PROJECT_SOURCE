@@ -8,8 +8,8 @@ public:
     void setup();
     void update();
     
-    vector<ofVec3f> headings;
-    vector<ofVec3f> position;
+    deque<ofVec3f> headings;
+    deque<ofVec3f> position;
     
     int matches;
 };

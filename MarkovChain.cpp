@@ -2,7 +2,7 @@
 
 MarkovChain::MarkovChain() {
     tolerance = 35;
-    numOfIterations = 500;
+    numOfIterations = 400;
     currentIteration = 0;
     numOfGenerations = 10;
     currentGeneration = 0;
@@ -43,7 +43,13 @@ bool MarkovChain::addToSequence(FlowField tFlowField) {
     }
     
     if(activatedCells > 3) {
-        flowFieldSequence.push_back(tFlowField);
+        if(flowFieldSequence.size() < 200) {
+            flowFieldSequence.push_back(tFlowField);
+        }
+        else {
+            flowFieldSequence.push_back(tFlowField);
+            flowFieldSequence.pop_front();
+        }
         return true;
     }
     else{
@@ -56,12 +62,12 @@ void MarkovChain::update() {
     if(currentIteration < numOfIterations && !complete) {
         for(int i = 0; i < flowFieldSequence.size(); i++) {
             int activatedCells = 0;
-            vector<ofVec3f> tClassifier;
-            vector<ofVec3f> tPosition;
+            deque<ofVec3f> tClassifier;
+            deque<ofVec3f> tPosition;
             for(int z = 0; z < flowFieldSequence[i].cellsZ; z++) {
                 for(int y = 0; y < flowFieldSequence[i].cellsY; y++) {
                     for(int x = 0; x < flowFieldSequence[i].cellsX; x++) {
-                        if(flowFieldSequence[i].cells[x][y][z].activated && flowFieldSequence[i].cells[x][y][z].heading.length() > 2) {
+                        if(flowFieldSequence[i].cells[x][y][z].activated && flowFieldSequence[i].cells[x][y][z].heading.length() > 3) {
                             activatedCells++;
                             tClassifier.push_back(flowFieldSequence[i].cells[x][y][z].heading);
                             tPosition.push_back(ofVec3f(x, y, z));
@@ -70,7 +76,7 @@ void MarkovChain::update() {
                 }
             }
             
-            vector<int> targetClassifier;
+            deque<int> targetClassifier;
             for(int i = 0; i < classifiers.size(); i++) {
                 if(tClassifier.size() == classifiers[i].headings.size()) {
                     targetClassifier.push_back(i);
@@ -114,13 +120,13 @@ void MarkovChain::update() {
                     cout << "Number of Classes: " << classifiers.size() << "\n";
                 }
             currentIteration++;
-//            if(tolerance > 10) {
-//                tolerance-=0.01;
-//            }
+            if(tolerance > 20) {
+                tolerance-=0.01;
+            }
         }
     }
     else if(numOfIterations <= currentIteration && !complete){
-        sequenceLength = flowFieldSequence.size()/4;
+        sequenceLength = flowFieldSequence.size()/10;
         getNewSequence();
         complete = true;
     }

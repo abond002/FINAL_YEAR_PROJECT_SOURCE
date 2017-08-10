@@ -3,8 +3,8 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
     ofBackground(0);
-    flowfield.setup(480, 480, 480, 20);
-    particles.setup(1080, 20);
+    flowfield.setup(480, 480, 480, 30);
+    particles.setup(1080, 30);
     
     gui.setup();
     gui.add(cellDamping.setup("Cell damping", false));
@@ -12,8 +12,8 @@ void ofApp::setup(){
     gui.add(cellSense.setup("Cell sense", 10.0, 0.0, 20.0));
     gui.add(cellNormalise.setup("Cell norm", false));
     gui.add(particleSpeedLimit.setup("Part Speed Lim", 3.0, 1.0, 10.0));
-    gui.add(particleSlowdown.setup("Particle Slowdown", 0.92, 0.0, 1.0));
-    gui.add(particleSense.setup("Particle sense", 1.0, 0.0, 2));
+    gui.add(particleSlowdown.setup("Particle Slowdown", 0.75, 0.0, 1.0));
+    gui.add(particleSense.setup("Particle sense", 2.0, 0.0, 2));
     gui.add(particleKillLimit.setup("Particle kill limit", 0.1, 0.0, 0.5));
     gui.add(drawKinectData.setup("Kinect Data", false));
     gui.add(drawFlowfieldData.setup("Draw Flowfield", false));
@@ -55,16 +55,6 @@ void ofApp::update(){
     particles.particleSense = particleSense;
     particles.particleKillLimit = particleKillLimit;
     
-    kinectdata.update();
-    flowfield.update(kinectdata.getData());
-    
-    
-    
-    if(drawParticles) {
-        particles.update(flowfield);
-    }
-
-    
     if(drawGA) {
         ga.update();
         if(ga.getNewFlowField) {
@@ -72,9 +62,16 @@ void ofApp::update(){
         }
     }
     
+    if(stage < 2) {
+        kinectdata.update();
+        flowfield.update(kinectdata.getData());
+        particles.update(flowfield);
+    }
+    
     switch(stage) {
             
         case 0 :
+            
             if(markovChain.addToSequence(flowfield)) {
                 timeOut = 0;
             }
@@ -82,11 +79,11 @@ void ofApp::update(){
                 timeOut++;
             }
             
-            if(timeOut > 50 && markovChain.flowFieldSequence.size() < 5) {
+            if(timeOut > 50 && markovChain.flowFieldSequence.size() < 50) {
                 timeOut = 0;
                 markovChain.flowFieldSequence.clear();
             }
-            else if(timeOut > 50 && markovChain.flowFieldSequence.size() > 5) {
+            else if(timeOut > 50 && markovChain.flowFieldSequence.size() > 50) {
                 timeOut = 0;
                 stage = 1;
             }
@@ -96,7 +93,9 @@ void ofApp::update(){
             break;
             
         case 1 :
-            
+            kinectdata.update();
+            flowfield.update(kinectdata.getData());
+            particles.update(flowfield);
             if(!markovChain.complete) {
                 markovChain.update();
             }
@@ -114,6 +113,7 @@ void ofApp::update(){
             else {
                 stage = 0;
                 markovChain.setup(50);
+                particles.setup(1080, 30);
             }
             
             break;
@@ -134,9 +134,6 @@ void ofApp::draw(){
     if(drawFlowfieldData) {
         flowfield.draw(0,0);
     }
-    if(drawParticles) {
-        particles.draw(0,0);
-    }
             
             //flowfield.drawAverageMotion(ofGetWidth()/2, 0);
 
@@ -151,7 +148,10 @@ void ofApp::draw(){
         markovChain.draw(640, 0);
     }
     
-    if(stage == 2) {
+    if(stage < 2) {
+        particles.draw(0,0);
+    }
+    else if(stage == 2) {
         shapeBuilder.draw(0, 0);
     }
     

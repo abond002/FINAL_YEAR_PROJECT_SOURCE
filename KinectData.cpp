@@ -6,7 +6,7 @@ KinectData::KinectData() { //Put controls in GUI
     kinect.init();
     kinect.setRegistration(true);
     kinect.open();
-    kinect.setCameraTiltAngle(3);
+    kinect.setCameraTiltAngle(6);
     //Depth threshold
     thresh = 0.0;
     buffer.allocate(480,480, GL_RGBA);

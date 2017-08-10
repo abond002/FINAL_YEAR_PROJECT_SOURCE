@@ -18,9 +18,20 @@ void ParticleSystem::update(FlowField &temp) { //Fix to use pointers
         for(int y = 0; y < temp.cellsY; y++) {
             for(int x = 0; x < temp.cellsX; x++) {
                 if(temp.cells[x][y][z].heading.length() > particleSense) {
+                    if(particleLoc.size() < 500) {
                     particleLoc.push_back(ofVec3f(x * particleSpacing, y * particleSpacing, z * particleSpacing));
                     particleAcc.push_back(temp.cells[x][y][z].heading);
                     particleVel.push_back(temp.cells[x][y][z].heading);
+                    }
+                    else {
+                        particleLoc.pop_front();
+                        particleVel.pop_front();
+                        particleAcc.pop_front();
+                        particleLoc.push_back(ofVec3f(x * particleSpacing, y * particleSpacing, z * particleSpacing));
+                        particleAcc.push_back(temp.cells[x][y][z].heading);
+                        particleVel.push_back(temp.cells[x][y][z].heading);
+
+                    }
                 }
             }
         }
@@ -56,7 +67,7 @@ void ParticleSystem::update(FlowField &temp) { //Fix to use pointers
         bool twoPoints = false;
         int previousPoint;
         for(int t = 0; t < particleLoc.size(); t++) {
-            if(t != 1 &&particleLoc[i].distance(particleLoc[t]) < 80) {
+            if(t != 1 &&particleLoc[i].distance(particleLoc[t]) < 60) {
                 if(!twoPoints) {
                     previousPoint = t;
                     twoPoints = true;

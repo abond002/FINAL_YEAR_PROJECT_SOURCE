@@ -47,5 +47,6 @@ public:
     
     bool complete;
     
-    ofMesh mesh;
+    ofMesh smallMesh;
+    ofMesh bigMesh;
 };

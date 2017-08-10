@@ -15,9 +15,9 @@ public:
     void getNewSequence();
     int returnCurrentSeq();
     
-    vector<Classifier> classifiers;
-    vector<int> numOfHits;
-    vector<float> tempProb;
+    deque<Classifier> classifiers;
+    deque<int> numOfHits;
+    deque<float> tempProb;
     
     deque<FlowField> flowFieldSequence;
     

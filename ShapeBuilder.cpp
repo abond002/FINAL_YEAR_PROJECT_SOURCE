@@ -17,14 +17,17 @@ ShapeBuilder::ShapeBuilder() {
     
     smallShapeColour = ofColor::indigo;
     mediumShapeColour = ofColor::purple;
-    bigShapeColour = ofColor::orange;
+    bigShapeColour = ofColor::gold;
     
     smallShapeColour.a = 3;
     mediumShapeColour.a = 3;
     bigShapeColour.a = 3;
     
-    mesh.setMode(OF_PRIMITIVE_TRIANGLES);
-    mesh.enableIndices();
+    smallMesh.setMode(OF_PRIMITIVE_TRIANGLES);
+    smallMesh.enableIndices();
+    
+    bigMesh.setMode(OF_PRIMITIVE_TRIANGLES);
+    bigMesh.enableIndices();
 }
 
 void ShapeBuilder::setup(deque<Classifier> tempClass) {
@@ -40,13 +43,13 @@ void ShapeBuilder::setup(deque<Classifier> tempClass) {
         lines.push_back(tempLines);
     }
     for(Classifier t : tempClass) {
-        if(t.headings.size() > 1 && t.headings.size() < 6) {
+        if(t.headings.size() > 1 && t.headings.size() < 5) {
             makeShape(t, 0);
         }
-        else if(t.headings.size() > 6 && t.headings.size() < 12) {
+        else if(t.headings.size() > 5 && t.headings.size() < 10) {
             makeShape(t, 1);
         }
-        else if(t.headings.size() > 12) {
+        else if(t.headings.size() > 10) {
             makeShape(t, 2);
         }
     }
@@ -183,40 +186,51 @@ void ShapeBuilder::update() {
         complete = true;
     }
     
-    mesh.clear();
+    smallMesh.clear();
+    bigMesh.clear();
     
-    if(smallShape.size() > 0 && mediumShape.size() > 0 && bigShape.size() > 0) {
-        for(int i = 0; i < smallShape[0].size()-1; i++) {
-            mesh.addVertex(smallShape[0][i]);
-            mesh.addColor(smallShapeColour);
-            mesh.addVertex(smallShape[0][i+1]);
-            mesh.addColor(smallShapeColour);
-            
-            mesh.addVertex(mediumShape[0][i]);
-            mesh.addColor(mediumShapeColour);
-            mesh.addVertex(mediumShape[0][i+1]);
-            mesh.addColor(mediumShapeColour);
-            
-            mesh.addVertex(bigShape[0][i]);
-            mesh.addColor(bigShapeColour);
-            mesh.addVertex(bigShape[0][i+1]);
-            mesh.addColor(bigShapeColour);
-            
-            mesh.addIndex(i);
-            mesh.addIndex(i+1);
-            mesh.addIndex(i+2);
-            
-            mesh.addIndex(i+1);
-            mesh.addIndex(i+2);
-            mesh.addIndex(i+3);
-            
-            mesh.addIndex(i+2);
-            mesh.addIndex(i+3);
-            mesh.addIndex(i+4);
-            
-            mesh.addIndex(i+3);
-            mesh.addIndex(i+4);
-            mesh.addIndex(i+5);
+    if(smallShape.size() > 0 || mediumShape.size() > 0 || bigShape.size() > 0) {
+        if(smallShape.size() > 0 && mediumShape.size() > 0) {
+            for(int i = 0; i < smallShape[0].size()-1; i++) {
+                smallMesh.addVertex(smallShape[0][i]);
+                smallMesh.addColor(smallShapeColour);
+                smallMesh.addVertex(smallShape[0][i+1]);
+                smallMesh.addColor(smallShapeColour);
+                
+                smallMesh.addVertex(mediumShape[0][i]);
+                smallMesh.addColor(mediumShapeColour);
+                smallMesh.addVertex(mediumShape[0][i+1]);
+                smallMesh.addColor(mediumShapeColour);
+                
+                smallMesh.addIndex(i);
+                smallMesh.addIndex(i+1);
+                smallMesh.addIndex(i+2);
+                
+                smallMesh.addIndex(i+1);
+                smallMesh.addIndex(i+2);
+                smallMesh.addIndex(i+3);
+            }
+        }
+        if(mediumShape.size() > 0 && bigShape.size() > 0) {
+            for(int i = 0; i < mediumShape[0].size()-1; i++) {
+                bigMesh.addVertex(mediumShape[0][i]);
+                bigMesh.addColor(mediumShapeColour);
+                bigMesh.addVertex(mediumShape[0][i+1]);
+                bigMesh.addColor(mediumShapeColour);
+                
+                bigMesh.addVertex(bigShape[0][i]);
+                bigMesh.addColor(bigShapeColour);
+                bigMesh.addVertex(bigShape[0][i+1]);
+                bigMesh.addColor(bigShapeColour);
+                
+                bigMesh.addIndex(i);
+                bigMesh.addIndex(i+1);
+                bigMesh.addIndex(i+2);
+                
+                bigMesh.addIndex(i+1);
+                bigMesh.addIndex(i+2);
+                bigMesh.addIndex(i+3);
+            }
         }
     }
 }
@@ -230,70 +244,71 @@ void ShapeBuilder::draw(int x, int y) {
     ofRotateY(viewRot);
     ofTranslate(-startingX, -startingY, -startingY);
     
-    if(smallShape.size() > 0) {
-        if(smallShape[0].size() >= lines[0].size() - 1) {
-            for(int i = 0; i < lines[0].size(); i++) {
-                if(lines[0][i] < smallShape[0].size() - 1) {
-                    ofPushStyle();
-                    ofSetColor(smallShapeColour, ofMap(smallShape[0][lines[0][i]].distance(ofVec3f(startingX, startingY, startingY)), 0, 320, 255, 0));
-                    ofSetLineWidth(ofMap(smallShape[0][lines[0][i]].distance(ofVec3f(startingX, startingY, startingY)), 0, 320, 5, 1));
-                    ofDrawLine(smallShape[0][lines[0][i]].x, smallShape[0][lines[0][i]].y, smallShape[0][lines[0][i]].z, smallShape[0][lines[0][i]+1].x, smallShape[0][lines[0][i]+1].y, smallShape[0][lines[0][i]+1].z);
-                    ofPopStyle();
-                }
-                
-                if(lines[0][i] < smallShape[0].size()) {
-                    lines[0][i]++;
-                }
-                else {
-                    lines[0][i] = 0;
-                }
-            }
-        }
-    }
+//    if(smallShape.size() > 0) {
+//        if(smallShape[0].size() >= lines[0].size() - 1) {
+//            for(int i = 0; i < lines[0].size(); i++) {
+//                if(lines[0][i] < smallShape[0].size() - 1) {
+//                    ofPushStyle();
+//                    ofSetColor(smallShapeColour, ofMap(smallShape[0][lines[0][i]].distance(ofVec3f(startingX, startingY, startingY)), 0, 320, 255, 0));
+//                    ofSetLineWidth(ofMap(smallShape[0][lines[0][i]].distance(ofVec3f(startingX, startingY, startingY)), 0, 320, 5, 1));
+//                    ofDrawLine(smallShape[0][lines[0][i]].x, smallShape[0][lines[0][i]].y, smallShape[0][lines[0][i]].z, smallShape[0][lines[0][i]+1].x, smallShape[0][lines[0][i]+1].y, smallShape[0][lines[0][i]+1].z);
+//                    ofPopStyle();
+//                }
+//                
+//                if(lines[0][i] < smallShape[0].size()) {
+//                    lines[0][i]++;
+//                }
+//                else {
+//                    lines[0][i] = 0;
+//                }
+//            }
+//        }
+//    }
+//    
+//    if(mediumShape.size() > 0) {
+//        if(mediumShape[0].size() >= lines[1].size() - 1) {
+//            for(int i = 0; i < lines[1].size(); i++) {
+//                if(lines[1][i] < mediumShape[0].size() - 1) {
+//                    ofPushStyle();
+//                    ofSetColor(mediumShapeColour, ofMap(mediumShape[0][lines[1][i]].distance(ofVec3f(startingX, startingY, startingY)), 0, 320, 255, 0));
+//                    ofSetLineWidth(ofMap(mediumShape[0][lines[1][i]].distance(ofVec3f(startingX, startingY, startingY)), 0, 320, 5, 1));
+//                    ofDrawLine(mediumShape[0][lines[1][i]].x, mediumShape[0][lines[1][i]].y, mediumShape[0][lines[1][i]].z, mediumShape[0][lines[1][i]+1].x, mediumShape[0][lines[1][i]+1].y, mediumShape[0][lines[1][i]+1].z);
+//                    ofPopStyle();
+//                }
+//                
+//                if(lines[1][i] < mediumShape[0].size()) {
+//                    lines[0][i]++;
+//                }
+//                else {
+//                    lines[1][i] = 0;
+//                }
+//            }
+//        }
+//    }
+//    
+//    if(bigShape.size() > 0) {
+//        if(bigShape[0].size() >= lines[2].size() - 1) {
+//            for(int i = 0; i < lines[2].size(); i++) {
+//                if(lines[2][i] < bigShape[0].size() - 1) {
+//                    ofPushStyle();
+//                    ofSetColor(bigShapeColour, ofMap(bigShape[0][lines[2][i]].distance(ofVec3f(startingX, startingY, startingY)), 0, 320, 255, 0));
+//                    ofSetLineWidth(ofMap(bigShape[0][lines[2][i]].distance(ofVec3f(startingX, startingY, startingY)), 0, 320, 5, 1));
+//                    ofDrawLine(bigShape[0][lines[2][i]].x, bigShape[0][lines[2][i]].y, bigShape[0][lines[2][i]].z, bigShape[0][lines[2][i]+1].x, bigShape[0][lines[2][i]+1].y, bigShape[0][lines[2][i]+1].z);
+//                    ofPopStyle();
+//                }
+//                
+//                if(lines[2][i] < bigShape[0].size()) {
+//                    lines[2][i]++;
+//                }
+//                else {
+//                    lines[2][i] = 0;
+//                }
+//            }
+//        }
+//    }
     
-    if(mediumShape.size() > 0) {
-        if(mediumShape[0].size() >= lines[1].size() - 1) {
-            for(int i = 0; i < lines[1].size(); i++) {
-                if(lines[1][i] < mediumShape[0].size() - 1) {
-                    ofPushStyle();
-                    ofSetColor(mediumShapeColour, ofMap(mediumShape[0][lines[1][i]].distance(ofVec3f(startingX, startingY, startingY)), 0, 320, 255, 0));
-                    ofSetLineWidth(ofMap(mediumShape[0][lines[1][i]].distance(ofVec3f(startingX, startingY, startingY)), 0, 320, 5, 1));
-                    ofDrawLine(mediumShape[0][lines[1][i]].x, mediumShape[0][lines[1][i]].y, mediumShape[0][lines[1][i]].z, mediumShape[0][lines[1][i]+1].x, mediumShape[0][lines[1][i]+1].y, mediumShape[0][lines[1][i]+1].z);
-                    ofPopStyle();
-                }
-                
-                if(lines[1][i] < mediumShape[0].size()) {
-                    lines[0][i]++;
-                }
-                else {
-                    lines[1][i] = 0;
-                }
-            }
-        }
-    }
-    
-    if(bigShape.size() > 0) {
-        if(bigShape[0].size() >= lines[2].size() - 1) {
-            for(int i = 0; i < lines[2].size(); i++) {
-                if(lines[2][i] < bigShape[0].size() - 1) {
-                    ofPushStyle();
-                    ofSetColor(bigShapeColour, ofMap(bigShape[0][lines[2][i]].distance(ofVec3f(startingX, startingY, startingY)), 0, 320, 255, 0));
-                    ofSetLineWidth(ofMap(bigShape[0][lines[2][i]].distance(ofVec3f(startingX, startingY, startingY)), 0, 320, 5, 1));
-                    ofDrawLine(bigShape[0][lines[2][i]].x, bigShape[0][lines[2][i]].y, bigShape[0][lines[2][i]].z, bigShape[0][lines[2][i]+1].x, bigShape[0][lines[2][i]+1].y, bigShape[0][lines[2][i]+1].z);
-                    ofPopStyle();
-                }
-                
-                if(lines[2][i] < bigShape[0].size()) {
-                    lines[2][i]++;
-                }
-                else {
-                    lines[2][i] = 0;
-                }
-            }
-        }
-    }
-    
-    mesh.draw();
+    smallMesh.draw();
+    bigMesh.draw();
     
     
     drawBuffer.end();
