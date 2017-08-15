@@ -79,11 +79,11 @@ void ofApp::update(){
                 timeOut++;
             }
             
-            if(timeOut > 50 && markovChain.flowFieldSequence.size() < 50) {
+            if(timeOut > 150 && markovChain.flowFieldSequence.size() < 50) {
                 timeOut = 0;
                 markovChain.flowFieldSequence.clear();
             }
-            else if(timeOut > 50 && markovChain.flowFieldSequence.size() > 50) {
+            else if(timeOut > 150 && markovChain.flowFieldSequence.size() > 50) {
                 timeOut = 0;
                 stage = 1;
             }
