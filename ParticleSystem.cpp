@@ -11,6 +11,7 @@ void ParticleSystem::setup(int size, int amount) {
     particleBoxSize = size;
     particleNumber = amount;
     particleSpacing = particleBoxSize/particleNumber;
+    particleLimit = 800;
 }
 
 void ParticleSystem::update(FlowField &temp) { //Fix to use pointers
@@ -18,20 +19,9 @@ void ParticleSystem::update(FlowField &temp) { //Fix to use pointers
         for(int y = 0; y < temp.cellsY; y++) {
             for(int x = 0; x < temp.cellsX; x++) {
                 if(temp.cells[x][y][z].heading.length() > particleSense) {
-                    if(particleLoc.size() < 500) {
                     particleLoc.push_back(ofVec3f(x * particleSpacing, y * particleSpacing, z * particleSpacing));
                     particleAcc.push_back(temp.cells[x][y][z].heading);
                     particleVel.push_back(temp.cells[x][y][z].heading);
-                    }
-                    else {
-                        particleLoc.pop_front();
-                        particleVel.pop_front();
-                        particleAcc.pop_front();
-                        particleLoc.push_back(ofVec3f(x * particleSpacing, y * particleSpacing, z * particleSpacing));
-                        particleAcc.push_back(temp.cells[x][y][z].heading);
-                        particleVel.push_back(temp.cells[x][y][z].heading);
-
-                    }
                 }
             }
         }
@@ -46,6 +36,14 @@ void ParticleSystem::update(FlowField &temp) { //Fix to use pointers
             particleLoc.erase(particleLoc.begin()+i);
             particleAcc.erase(particleAcc.begin()+i);
             particleVel.erase(particleVel.begin()+i);
+        }
+    }
+    
+    if(particleLoc.size() > particleLimit) {
+        for(int i = 0; i < particleLoc.size() - particleLimit; i++) {
+            particleLoc.pop_front();
+            particleAcc.pop_front();
+            particleVel.pop_front();
         }
     }
     

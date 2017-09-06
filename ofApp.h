@@ -12,6 +12,7 @@
 #include "GeneticAlgorithm.h"
 #include "MarkovChain.h"
 #include "ShapeBuilder.h"
+#include "OrbitBuilder.h"
 
 class ofApp : public ofBaseApp{
 
@@ -29,7 +30,7 @@ class ofApp : public ofBaseApp{
     
     ofxToggle cellDamping, cellNormalise, drawKinectData, drawFlowfieldData, drawParticles, drawGA, drawMC;
     
-    ofxFloatSlider cellSlowdown, cellSense, particleSlowdown, particleSense, particleKillLimit, particleSpeedLimit;
+    ofxFloatSlider cellSlowdown, cellSense, particleSlowdown, particleSense, particleKillLimit, particleSpeedLimit, orbitBuilderY, orbitBuilderXSmall,orbitBuilderXMedium, orbitBuilderXBig;
     
     ofxPanel gui;
     
@@ -41,7 +42,9 @@ class ofApp : public ofBaseApp{
     
     ShapeBuilder shapeBuilder;
     
-    int timeOut;
+    OrbitBuilder orbitBuilder;
+    
+    int timeOut, currentSequencePos;
     
     int stage;
 		

@@ -16,6 +16,7 @@ public:
     
     int particleBoxSize;
     int particleNumber;
+    int particleLimit;
     float particleSpacing;
     float rot;
     

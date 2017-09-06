@@ -6,7 +6,7 @@ KinectData::KinectData() { //Put controls in GUI
     kinect.init();
     kinect.setRegistration(true);
     kinect.open();
-    kinect.setCameraTiltAngle(6);
+    kinect.setCameraTiltAngle(8);
     //Depth threshold
     thresh = 0.0;
     buffer.allocate(480,480, GL_RGBA);
@@ -35,7 +35,8 @@ void KinectData::update() {
                 float bright = pixels[x+fimg.width*y];
                 if(bright > thresh) {
                     int z = ofMap(bright, thresh, 1, 5, 475);
-                    location.push_back(ofVec3f(x,y,z));
+                    int locX = ofMap(x, 0, 640, 640, 0);
+                    location.push_back(ofVec3f(locX,y,z));
                 }
             }
         }

@@ -9,10 +9,10 @@ void ofApp::setup(){
     gui.setup();
     gui.add(cellDamping.setup("Cell damping", false));
     gui.add(cellSlowdown.setup("Cell slowdown", 0.4, 0.0, 1.0));
-    gui.add(cellSense.setup("Cell sense", 10.0, 0.0, 20.0));
+    gui.add(cellSense.setup("Cell sense", 8.0, 0.0, 20.0));
     gui.add(cellNormalise.setup("Cell norm", false));
     gui.add(particleSpeedLimit.setup("Part Speed Lim", 3.0, 1.0, 10.0));
-    gui.add(particleSlowdown.setup("Particle Slowdown", 0.75, 0.0, 1.0));
+    gui.add(particleSlowdown.setup("Particle Slowdown", 0.7, 0.0, 1.0));
     gui.add(particleSense.setup("Particle sense", 2.0, 0.0, 2));
     gui.add(particleKillLimit.setup("Particle kill limit", 0.1, 0.0, 0.5));
     gui.add(drawKinectData.setup("Kinect Data", false));
@@ -20,6 +20,10 @@ void ofApp::setup(){
     gui.add(drawParticles.setup("Draw Particles", true));
     gui.add(drawGA.setup("Draw GA", false));
     gui.add(drawMC.setup("Draw MC", false));
+    gui.add(orbitBuilderY.setup("Shapes Y", 237.6, 0, 1080));
+    gui.add(orbitBuilderXSmall.setup("Shape Small X", 1708.8, 0, 1920));
+    gui.add(orbitBuilderXMedium.setup("Shape Medium X", 988.8, 0, 1920));
+    gui.add(orbitBuilderXBig.setup("Shape Big X", 278.4, 0, 1920));
     
     debug = false;
             
@@ -30,9 +34,11 @@ void ofApp::setup(){
     stage = 0;
     
     timeOut = 0;
-
     
-    //ofSetFrameRate(24);
+    currentSequencePos = 0;
+
+    orbitBuilder.setup();
+    
 }
 
 //--------------------------------------------------------------
@@ -55,18 +61,24 @@ void ofApp::update(){
     particles.particleSense = particleSense;
     particles.particleKillLimit = particleKillLimit;
     
-    if(drawGA) {
-        ga.update();
-        if(ga.getNewFlowField) {
-            ga.newFlowField = flowfield;
-        }
-    }
+    orbitBuilder.startingY = orbitBuilderY;
+    orbitBuilder.startingXSmall = orbitBuilderXSmall;
+    orbitBuilder.startingXMedium = orbitBuilderXMedium;
+    orbitBuilder.startingXBig = orbitBuilderXBig;
     
-    if(stage < 2) {
-        kinectdata.update();
-        flowfield.update(kinectdata.getData());
-        particles.update(flowfield);
-    }
+    orbitBuilder.update();
+    
+//    if(drawGA) {
+//        ga.update();
+//        if(ga.getNewFlowField) {
+//            ga.newFlowField = flowfield;
+//        }
+//    }
+//
+    
+    kinectdata.update();
+    flowfield.update(kinectdata.getData());
+    particles.update(flowfield);
     
     switch(stage) {
             
@@ -85,41 +97,36 @@ void ofApp::update(){
             }
             else if(timeOut > 150 && markovChain.flowFieldSequence.size() > 50) {
                 timeOut = 0;
-                stage = 1;
             }
             
             cout << "Timeout: " << timeOut << "\n";
             
-            break;
-            
-        case 1 :
-            kinectdata.update();
-            flowfield.update(kinectdata.getData());
-            particles.update(flowfield);
             if(!markovChain.complete) {
                 markovChain.update();
             }
             else {
-                shapeBuilder.setup(markovChain.sequence);
-                stage = 2;
+                stage = 1;
             }
             
             break;
             
-        case 2 :
-            if(!shapeBuilder.complete) {
-                shapeBuilder.update();
-            }
-            else {
-                stage = 0;
-                markovChain.setup(50);
-                particles.setup(1080, 30);
+        case 1:
+            
+            if(ofGetElapsedTimeMillis() % 5000) {
+                if(currentSequencePos < markovChain.sequence.size()) {
+                orbitBuilder.getNewValues(markovChain.sequence[currentSequencePos]);
+                currentSequencePos++;
+                }
+                else {
+                    currentSequencePos = 0;
+                    stage = 1;
+                    markovChain.setup(50);
+                }
             }
             
             break;
             
     }
-    
 }
 
 //--------------------------------------------------------------
@@ -137,23 +144,20 @@ void ofApp::draw(){
             
             //flowfield.drawAverageMotion(ofGetWidth()/2, 0);
 
-    if(drawGA) {
-        ga.drawBestFit(0, 0, 0);
-        ga.drawBestFit(1, 480, 0);
-        ga.drawBestFit(2, 0, 480);
-        ga.drawBestFit(3, 480, 480);
-    }
+//    if(drawGA) {
+//        ga.drawBestFit(0, 0, 0);
+//        ga.drawBestFit(1, 480, 0);
+//        ga.drawBestFit(2, 0, 480);
+//        ga.drawBestFit(3, 480, 480);
+//    }
+
+//    if(drawMC) {
+//        markovChain.draw(640, 0);
+//    }
     
-    if(drawMC) {
-        markovChain.draw(640, 0);
-    }
+    orbitBuilder.draw(1920,0);
     
-    if(stage < 2) {
-        particles.draw(0,0);
-    }
-    else if(stage == 2) {
-        shapeBuilder.draw(0, 0);
-    }
+    particles.draw(0,0);
     
     
 }
@@ -167,5 +171,16 @@ void ofApp::keyPressed(int key) {
     }
     if(key == 's') {
         ofShowCursor();
+    }
+    if(key == 'n') {
+        for(int i = 0; i < 3; i++) {
+            orbitBuilder.smallShapeTargetRot[i] = ofRandom(-0.05, 0.05);
+            orbitBuilder.mediumShapeTargetRot[i] = ofRandom(-0.05, 0.05);
+            orbitBuilder.bigShapeTargetRot[i] = ofRandom(-0.05, 0.05);
+            
+            orbitBuilder.smallShapeTargetDist[i] = ofRandom(50, 100);
+            orbitBuilder.mediumShapeTargetDist[i] = ofRandom(50, 100);
+            orbitBuilder.bigShapeTargetDist[i] = ofRandom(50, 100);
+        }
     }
 }
